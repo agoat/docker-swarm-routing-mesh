@@ -25,10 +25,9 @@ services:
     image: agoat/routing-mesh-manager:1.0.4
     environment:
       ROUTING_NETWORK: "routingmesh"
-      LETSENCRYPT_EMAIL: "mehh@agoat.xyz"
-      DHPARAM_KEYSIZE: 2048
+      LETSENCRYPT_EMAIL: "your@email.xyz"
     networks:
-      bridge:
+      internet:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "config:/etc/nginx/conf.d"
@@ -42,9 +41,8 @@ volumes:
     name: "letsencrypt-certs"
 
 networks:
-#  routing:
-#    attachable: true
-#    name: "routing"
   routingmesh:
     external: true
-  bridge:
+#    attachable: true
+#    name: "routingmesh"
+  internet:
