@@ -1,8 +1,13 @@
-
- L7 routing mesh (based on NGINX) with automated configuration and ssl certificate creation (based on Let's Encrypt)
+# Ingress Routing Mesh
+#### Ingress controller (based on NGINX) with automated configuration and ssl certificate creation (based on Let's Encrypt)
  ----
 
  
+ #### TODO:
+ - Good explanation of container labels
+ - Install instructions
+ 
+ ___
  All services/containers have to be registered with the following labels:
 
  routing.mesh.domains: string <A comma separated list of domain names (use "//" (double slash) to start a new group of domain names for which a separate certificate will be generated)>
