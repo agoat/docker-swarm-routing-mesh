@@ -2,7 +2,7 @@ version: "3.5"
 
 services:
   controller:
-    image: agoat/routing-mesh-controller:1.0.4
+    image: agoat/routing-mesh-controller:1.0
     deploy:
       mode: global
     labels:
@@ -22,7 +22,7 @@ services:
       - "certs:/etc/letsencrypt:ro"
 
   manager:
-    image: agoat/routing-mesh-manager:1.0.4
+    image: agoat/routing-mesh-manager:1.1
     environment:
       ROUTING_NETWORK: "routingmesh"
       LETSENCRYPT_EMAIL: "your@email.xyz"
