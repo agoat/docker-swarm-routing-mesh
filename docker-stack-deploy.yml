@@ -1,8 +1,8 @@
-version: "3.5"
+version: "3.7"
 
 services:
   controller:
-    image: agoat/routing-mesh-controller:1.1
+    image: agoat/routing-mesh-controller:latest
     deploy:
       mode: global
     labels:
@@ -22,7 +22,7 @@ services:
       - "certs:/etc/letsencrypt:ro"
 
   manager:
-    image: agoat/routing-mesh-manager:1.2
+    image: agoat/routing-mesh-manager:latest
     environment:
       ROUTING_NETWORK: "routingmesh"
       LETSENCRYPT_EMAIL: "your@email.xyz"
@@ -38,11 +38,11 @@ volumes:
   config:
   challenges:
   certs:
-    name: "letsencrypt-certs"
+#    name: "letsencrypt-certs"
 
 networks:
   routingmesh:
-    external: true
-#    attachable: true
-#    name: "routingmesh"
+#    external: true
+    attachable: true
+    name: "routingmesh"
   internet:
