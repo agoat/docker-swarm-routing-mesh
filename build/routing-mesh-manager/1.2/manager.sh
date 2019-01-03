@@ -3,6 +3,7 @@
 # check needed environment vars
 export ROUTING_NETWORK=${ROUTING_NETWORK:?"The name of the routing network must be set!"}
 export LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:?"There must be an email adress!"}
+export DHPARAM_KEYSIZE=${DHPARAM_KEYSIZE:-1024}
 
 if [ ! -S /var/run/docker.sock ]
 then 

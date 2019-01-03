@@ -26,75 +26,80 @@ declare -A redirectlist
 
 
 # Build a configuration array for every parameter per domaingroup with the service or container name from containers connected to the routing network
+echo "[$(date '+%d/%b/%Y:%H:%M:%S %z')] .. fetching configuration"
 for containername in $(docker network inspect ${ROUTING_NETWORK} -f '{{ range .Containers }}{{ .Name }} {{ end}}')
 do
-	_domains=$(docker inspect ${containername} -f '{{index .Config.Labels "routing.mesh.domains"}}')
-	
-	if [ -n "$_domains" ]
-	then
-		counter=0
-		
-		for domains in ${_domains//\/\//$'\n'}
-		do
-			if [ -n "$domains" ]
-			then
-				servicename=$(docker inspect ${containername} -f '{{index .Config.Labels "com.docker.swarm.service.name"}}')
+    if [[ ! ${containername} == "${ROUTING_NETWORK}-endpoint" ]]
+    then
+        _domains=$(docker inspect ${containername} -f '{{index .Config.Labels "routing.mesh.domains"}}')
 
-				if [ -n "$servicename" ]
-				then
-					servicelist[$domains]="$servicename"
-				else
-					servicelist[$domains]="$containername"
-				fi
-				
-				portlist[$domains]=$(docker inspect ${containername} -f '{{index .Config.Labels "routing.mesh.port"}}')
-				ssllist[$domains]=$(docker inspect ${containername} -f '{{index .Config.Labels "routing.mesh.ssl"}}')
-				hstslist[$domains]=$(docker inspect ${containername} -f '{{index .Config.Labels "routing.mesh.ssl.hsts"}}')
-				policylist[$domains]=$(docker inspect ${containername} -f '{{index .Config.Labels "routing.mesh.ssl.policy"}}')
+        if [[ -n "$_domains" ]]
+        then
+            counter=0
 
-				if [ "$(c=${_domains//[^\/\/]}; echo ${#c})" = "0" ]
-				then
-					certnamelist[$domains]=$(docker inspect ${containername} -f '{{index .Config.Labels "routing.mesh.cert.name"}}')
-				fi
-				
-				counterlist[$domains]=${counter}
-				counter=$((counter + 1))
-			fi
-		done
+            for domains in ${_domains//\/\//$'\n'}
+            do
+                if [[ -n "$domains" ]]
+                then
+                    servicename=$(docker inspect ${containername} -f '{{index .Config.Labels "com.docker.swarm.service.name"}}')
 
-		_redirects=$(docker inspect ${containername} -f '{{index .Config.Labels "routing.mesh.redirects"}}')
+                    if [[ -n "$servicename" ]]
+                    then
+                        servicelist[$domains]="$servicename"
+                    else
+                        servicelist[$domains]="$containername"
+                    fi
 
-		if [ -n "$_redirects" ]
-		then
-			for redirects in ${_redirects//\/\//$'\n'}
-			do
-				if [ -n "$redirects" ]
-				then
-					domains=${redirects%>*}
-					
-					servicename=$(docker inspect ${containername} -f '{{index .Config.Labels "com.docker.swarm.service.name"}}')
+                    portlist[$domains]=$(docker inspect ${containername} -f '{{index .Config.Labels "routing.mesh.port"}}')
+                    ssllist[$domains]=$(docker inspect ${containername} -f '{{index .Config.Labels "routing.mesh.ssl"}}')
+                    hstslist[$domains]=$(docker inspect ${containername} -f '{{index .Config.Labels "routing.mesh.ssl.hsts"}}')
+                    policylist[$domains]=$(docker inspect ${containername} -f '{{index .Config.Labels "routing.mesh.ssl.policy"}}')
 
-					if [ -n "$servicename" ]
-					then
-						servicelist[$domains]="$servicename"
-					else
-						servicelist[$domains]="$containername"
-					fi
-					
-					redirectlist[$domains]=${redirects#*>}
-					ssllist[$domains]=$(docker inspect ${containername} -f '{{index .Config.Labels "routing.mesh.ssl"}}')
-					hstslist[$domains]="off"
-					policylist[$domains]=$(docker inspect ${containername} -f '{{index .Config.Labels "routing.mesh.ssl.policy"}}')
+                    if [[ "$(c=${_domains//[^\/\/]}; echo ${#c})" = "0" ]]
+                    then
+                        certnamelist[$domains]=$(docker inspect ${containername} -f '{{index .Config.Labels "routing.mesh.cert.name"}}')
+                    fi
 
-					counterlist[$domains]=${counter}
-					counter=$((counter + 1))
-				fi
-			done
-		fi
-	fi
+                    counterlist[$domains]=${counter}
+                    counter=$((counter + 1))
+                fi
+            done
+
+            _redirects=$(docker inspect ${containername} -f '{{index .Config.Labels "routing.mesh.redirects"}}')
+
+            if [[ -n "$_redirects" ]]
+            then
+                for redirects in ${_redirects//\/\//$'\n'}
+                do
+                    if [[ -n "$redirects" ]]
+                    then
+                        domains=${redirects%>*}
+
+                        servicename=$(docker inspect ${containername} -f '{{index .Config.Labels "com.docker.swarm.service.name"}}')
+
+                        if [[ -n "$servicename" ]]
+                        then
+                            servicelist[$domains]="$servicename"
+                        else
+                            servicelist[$domains]="$containername"
+                        fi
+
+                        redirectlist[$domains]=${redirects#*>}
+                        ssllist[$domains]=$(docker inspect ${containername} -f '{{index .Config.Labels "routing.mesh.ssl"}}')
+                        hstslist[$domains]="off"
+                        policylist[$domains]=$(docker inspect ${containername} -f '{{index .Config.Labels "routing.mesh.ssl.policy"}}')
+
+                        counterlist[$domains]=${counter}
+                        counter=$((counter + 1))
+                    fi
+                done
+            fi
+        fi
+    fi
 done
 
 # Generate a configuration file with a nginx server block for each service/container
+echo "[$(date '+%d/%b/%Y:%H:%M:%S %z')] .. creating configuration"
 for domains in ${!servicelist[@]}
 do
 	service=${servicelist[$domains]}
@@ -108,7 +113,7 @@ do
 	
 	CONFIG_FILE=/etc/nginx/conf.d/${service}.${counter}.conf
 
-	echo "[$(date '+%d/%b/%Y:%H:%M:%S %z')] .. creating configuration for service/container '${service}' with domains: $domains"
+	echo "[$(date '+%d/%b/%Y:%H:%M:%S %z')] .. writing configuration for service/container '${service}' with domains: $domains"
 	
 	echo "server {" > ${CONFIG_FILE}
 	echo "  listen 80;" >> ${CONFIG_FILE}
@@ -146,7 +151,9 @@ do
 		echo "    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;" >> ${CONFIG_FILE}
 		echo "    proxy_http_version 1.1;" >> ${CONFIG_FILE}
 		echo "    proxy_buffering off;" >> ${CONFIG_FILE}
-		echo "    proxy_request_buffering  off;" >> ${CONFIG_FILE}
+		echo "    proxy_request_buffering off;" >> ${CONFIG_FILE}
+		echo "    proxy_connect_timeout 10s;" >> ${CONFIG_FILE}
+		echo "    proxy_read_timeout 10s;" >> ${CONFIG_FILE}
 		echo "    client_max_body_size 0;" >> ${CONFIG_FILE}
 		echo "  }" >> ${CONFIG_FILE}
 	fi
@@ -155,14 +162,14 @@ do
 		
 	if [ -n "$ssl" ]
 	then
-		echo -n "[$(date '+%d/%b/%Y:%H:%M:%S %z')]     preparing Let's Encrypt certificate ..."
+		echo -n "[$(date '+%d/%b/%Y:%H:%M:%S %z')]      preparing Let's Encrypt certificate ..."
 		
 		if [ -z "$certname" ]
 		then
 			certname=$(echo $domains | cut -d, -f1)
 		fi
 		
-		certbot certonly${TEST_CERT}${RSA_KEY_SIZE}${QUIET} --cert-name ${certname} --domains ${domains} --keep --renew-with-new-domains --agree-tos --email ${LETSENCRYPT_EMAIL} --no-eff-email
+		certbot certonly${TEST_CERT}${RSA_KEY_SIZE}${QUIET} --webroot -w /var/lib/letsencrypt --cert-name ${certname} --domains ${domains} --keep --renew-with-new-domains --agree-tos --email ${LETSENCRYPT_EMAIL} --no-eff-email
 
 		if [ $? -eq 0 ]
 		then
@@ -251,7 +258,9 @@ do
 				echo "    proxy_pass_header Server;" >> ${CONFIG_FILE}
 				echo "    proxy_http_version 1.1;" >> ${CONFIG_FILE}
 				echo "    proxy_buffering off;" >> ${CONFIG_FILE}
-				echo "    proxy_request_buffering  off;" >> ${CONFIG_FILE}
+				echo "    proxy_request_buffering off;" >> ${CONFIG_FILE}
+		        echo "    proxy_connect_timeout 10s;" >> ${CONFIG_FILE}
+		        echo "    proxy_read_timeout 10s;" >> ${CONFIG_FILE}
 				echo "    client_max_body_size 0;" >> ${CONFIG_FILE}
 				echo "    proxy_set_header Host \$host;" >> ${CONFIG_FILE}
 				echo "    proxy_set_header Upgrade \$http_upgrade;" >> ${CONFIG_FILE}
