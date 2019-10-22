@@ -7,7 +7,7 @@ export DHPARAM_KEYSIZE=${DHPARAM_KEYSIZE:-1024}
 
 export FILES_PATH="/etc/nginx/conf.d/"
 
-export NODE_ID=${NODE_ID:-$(hostname)}
+export NODE_ID=${NODE_ID:-"1"}
 
 # Check environment
 if [ ! -S /var/run/docker.sock ]
@@ -24,11 +24,9 @@ fi
 
 # if no master.lock set master.lock and start master task (dhparam key, wait for changes in lists and generate configuration)
 /scripts/master.sh &
-sleep 2s
-
-# Start watch task (wait for network events and write lists)
-/scripts/watch.sh &
-sleep 5s
 
 # Start configuration task (wait for changes in configuration)
-/scripts/configure.sh
+/scripts/configure.sh &
+
+# Start watch task (wait for network events and write lists)
+/scripts/watch.sh

@@ -2,11 +2,12 @@ FROM alpine:3.10
 
 LABEL maintainer="Arne Stappen <mehh@agoat.info>"
 
-ENV DOCKER_VERSION 19.03.3
+ENV DOCKER_VERSION 19.03.4
 ENV DOCKER_RELEASE_CHANNEL stable
 
 RUN apk add --no-cache \
     bash \
+    util-linux \
     libressl \
 	certbot
 
@@ -19,14 +20,10 @@ RUN apk add --no-cache --virtual .curl curl \
 	&& apk del .curl
 	
 #COPY cli.ini /etc/letsencrypt/cli.ini
-COPY manager.sh /scripts/manager.sh
-COPY configure.sh /scripts/configure.sh
-COPY reload.sh /scripts/reload.sh
-COPY renewal.sh /scripts/renewal.sh
-COPY dhparam.sh /scripts/dhparam.sh
+COPY *.sh /scripts/
 RUN chmod -R u+x /scripts
 
-ENV INGRESS_ROUTING_MANAGER_VERSION 2.0.0
+ENV INGRESS_ROUTING_MANAGER_VERSION 2.0
 
 STOPSIGNAL SIGKILL
 

@@ -14,7 +14,7 @@ declare -A certnamelist
 declare -A counterlist
 
 # Load collected data
-NODELISTFILES=$(ls /etc/nginx/conf.d/node.*.list)
+NODELISTFILES=$(ls /etc/nginx/conf.d/node.*.list 2>/dev/null)
 for LISTFILE in $NODELISTFILES
 do
   ## TODO Check if node is active (run only on manager nodes) ??
@@ -33,10 +33,7 @@ do
   done <$LISTFILE
 done
 
-# Remove old conf files
-rm -rf /etc/nginx/conf.d/*.conf
-
-# Generate a configuration with a nginx server block for each service/container
+# Generate temporary configuration files for each service/container
 echo "[$(date '+%d/%b/%Y:%H:%M:%S %z')] .. generating configuration"
 for domains in ${!servicelist[@]}
 do
@@ -49,7 +46,7 @@ do
 	counter=${counterlist[$domains]}
 	redirect=${redirectlist[$domains]}
 
-	CONFIG_FILE=/etc/nginx/conf.d/${service}.${counter}.conf
+	CONFIG_FILE=/etc/nginx/conf.d/${service}.${counter}.tmp
 
 	echo "[$(date '+%d/%b/%Y:%H:%M:%S %z')] .. writing configuration for service/container '${service}' with domains: $domains"
 
@@ -154,6 +151,7 @@ do
 			echo "  ssl_session_timeout 5m;" >> ${CONFIG_FILE}
 			echo "  ssl_session_cache shared:SSL:50m;" >> ${CONFIG_FILE}
 			echo "  ssl_session_tickets off;" >> ${CONFIG_FILE}
+      echo "  http2_idle_timeout 15m;" >> ${CONFIG_FILE}
 
 			dhparamfile=$(find /etc/letsencrypt -name dhparam_* | sort | tail -1)
 			if [ -n $dhparamfile ]
@@ -197,9 +195,9 @@ do
 				echo "    proxy_http_version 1.1;" >> ${CONFIG_FILE}
 				echo "    proxy_buffering off;" >> ${CONFIG_FILE}
 				echo "    proxy_request_buffering off;" >> ${CONFIG_FILE}
-		        echo "    proxy_connect_timeout 120s;" >> ${CONFIG_FILE}
-		        echo "    proxy_send_timeout 120s;" >> ${CONFIG_FILE}
-		        echo "    proxy_read_timeout 120s;" >> ${CONFIG_FILE}
+        echo "    proxy_connect_timeout 120s;" >> ${CONFIG_FILE}
+        echo "    proxy_send_timeout 15m;" >> ${CONFIG_FILE}
+        echo "    proxy_read_timeout 15m;" >> ${CONFIG_FILE}
 				echo "    client_max_body_size 0;" >> ${CONFIG_FILE}
 				echo "    proxy_set_header Host \$host;" >> ${CONFIG_FILE}
 				echo "    proxy_set_header Upgrade \$http_upgrade;" >> ${CONFIG_FILE}
@@ -222,3 +220,8 @@ do
 	fi
 done
 
+# Remove old conf files
+rm -rf /etc/nginx/conf.d/*.conf
+
+# Rename to conf files
+rename tmp conf /etc/nginx/conf.d/*.tmp 2>/dev/null

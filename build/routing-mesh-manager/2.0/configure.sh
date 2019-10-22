@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sleep 2s
+
 OLD_FILES_CHECKSUM=$( ls ${FILES_PATH}*.conf 2>/dev/null | md5sum | awk '{ print $1 }')
 /scripts/reload.sh
 
@@ -11,9 +13,9 @@ do
 
   if [[ ${NEW_FILES_CHECKSUM} != ${OLD_FILES_CHECKSUM} ]]
   then
-    echo "[$(date '+%d/%b/%Y:%H:%M:%S %z')] Detected changed configuration files .."
+    echo "[$(date '+%d/%b/%Y:%H:%M:%S %z')] Changes in configuration files detected .."
 
-    OLD_FILES_CHECKSUM=$NEW_FILES_CHECKSUM
+    OLD_FILES_CHECKSUM=${NEW_FILES_CHECKSUM}
     /scripts/reload.sh
     echo "[$(date '+%d/%b/%Y:%H:%M:%S %z')] .. new configuration applied"
 

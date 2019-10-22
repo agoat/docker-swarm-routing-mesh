@@ -1,11 +1,8 @@
 # Build and deploy the ingress routing mesh stack
 
-# Let's build the images
-docker build -t agoat/routing-mesh-controller:1.1 ./build/routing-mesh-controller/1.1
-docker build -t agoat/routing-mesh-manager:1.1 ./build/routing-mesh-manager/1.1 
-
-# Create network separately (as long as the docker cli is not setting the network.name properly)
-docker network create -d overlay --attachable --label com.docker.stack.namespace=routingmesh routingmesh
+# Build the images
+docker build -t agoat/routing-mesh-controller:1.3 ./build/routing-mesh-controller/1.3
+docker build -t agoat/routing-mesh-manager:2.0.0 ./build/routing-mesh-manager/2.0
 
 # Deploy the stack
-docker stack deploy -c docker-stack-deploy.yml irm
+docker stack deploy -c docker-stack-deploy.yml RoutingMesh

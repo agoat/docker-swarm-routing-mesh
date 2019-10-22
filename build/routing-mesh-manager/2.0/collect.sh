@@ -11,7 +11,6 @@ declare -A counterlist
 declare -A redirectlist
 
 # Collect data for all containers connected to the routing network
-echo "[$(date '+%d/%b/%Y:%H:%M:%S %z')] .. fetching configuration"
 for containername in $(docker network inspect ${ROUTING_NETWORK} -f '{{ range .Containers }}{{ .Name }} {{ end}}')
 do
     if [[ ! ${containername} == "${ROUTING_NETWORK}-endpoint" ]]
