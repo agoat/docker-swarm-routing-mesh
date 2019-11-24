@@ -2,7 +2,7 @@ FROM alpine:3.10
 
 LABEL maintainer="Arne Stappen <mehh@agoat.info>"
 
-ENV DOCKER_VERSION 19.03.4
+ENV DOCKER_VERSION 19.03.5
 ENV DOCKER_RELEASE_CHANNEL stable
 
 RUN apk add --no-cache \
@@ -23,7 +23,7 @@ RUN apk add --no-cache --virtual .curl curl \
 COPY *.sh /scripts/
 RUN chmod -R u+x /scripts
 
-ENV INGRESS_ROUTING_MANAGER_VERSION 2.0
+ENV INGRESS_ROUTING_MANAGER_VERSION 2.0.1
 
 STOPSIGNAL SIGKILL
 

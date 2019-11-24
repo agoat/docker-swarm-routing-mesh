@@ -56,7 +56,7 @@ do
 
 	echo "  location ^~ /.well-known/acme-challenge/ {" >> ${CONFIG_FILE}
 	echo "    default_type "text/plain";" >> ${CONFIG_FILE}
-	echo "    root /var/lib/letsencrypt;" >> ${CONFIG_FILE}
+	echo "    root /var/www/letsencrypt;" >> ${CONFIG_FILE}
 	echo "  }"  >> ${CONFIG_FILE}
 
 	if [ -n "$redirect" ]
@@ -104,7 +104,7 @@ do
 			certname=$(echo $domains | cut -d, -f1)
 		fi
 
-		certbot certonly${TEST_CERT}${RSA_KEY_SIZE}${QUIET} --webroot -w /var/lib/letsencrypt --cert-name ${certname} --domains ${domains} --keep --renew-with-new-domains --agree-tos --email ${LETSENCRYPT_EMAIL} --no-eff-email
+		certbot certonly${TEST_CERT}${RSA_KEY_SIZE}${QUIET} --webroot -w /var/www/letsencrypt --domains ${domains} --cert-name ${certname} --keep --renew-with-new-domains --agree-tos --email ${LETSENCRYPT_EMAIL} --no-eff-email
 
 		if [ $? -eq 0 ]
 		then

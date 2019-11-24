@@ -133,7 +133,7 @@ COPY nginx.conf /etc/nginx/nginx.conf
 COPY nginx.key /etc/nginx/ssl/nginx.key
 COPY nginx.crt /etc/nginx/ssl/nginx.crt
 
-ENV INGRESS_ROUTING_CONTROLLER_VERSION 1.4
+ENV INGRESS_ROUTING_CONTROLLER_VERSION 1.4.1
 
 EXPOSE 80
 EXPOSE 443

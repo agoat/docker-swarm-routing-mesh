@@ -18,7 +18,7 @@ services:
         mode: host
     volumes:
       - "config:/etc/nginx/conf.d:ro"
-      - "challenges:/var/lib/letsencrypt:ro"
+      - "challenges:/var/www/letsencrypt:ro"
       - "certs:/etc/letsencrypt:ro"
 
   manager:
@@ -34,7 +34,7 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "config:/etc/nginx/conf.d"
-      - "challenges:/var/lib/letsencrypt"
+      - "challenges:/var/www/letsencrypt"
       - "certs:/etc/letsencrypt"
 
 volumes:

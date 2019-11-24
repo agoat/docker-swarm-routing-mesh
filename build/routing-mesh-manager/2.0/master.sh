@@ -19,7 +19,7 @@ do
     echo ${NODE_ID} > "${FILES_PATH}master.lock"
     echo "[$(date '+%d/%b/%Y:%H:%M:%S %z')] Start working as master .."
 
-    sleep 1s
+    sleep 5s
 
     # run the certificate renewal in the background
     /scripts/renewal.sh &
@@ -30,7 +30,7 @@ do
       /scripts/dhparam.sh &
     fi
 
-    sleep 2s
+    sleep 20s
     
     # (re)create start configuration
     echo "[$(date '+%d/%b/%Y:%H:%M:%S %z')] Generating initial configuration .."
